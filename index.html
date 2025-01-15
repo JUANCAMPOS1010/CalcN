@@ -1,0 +1,289 @@
+<!-- index.html -->
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calculadora de Descuentos y Factores</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        /* Estilos CSS inline para asegurar que se carguen */
+        input[type=number]::-webkit-outer-spin-button,
+        input[type=number]::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+
+        input[type=number] {
+            -moz-appearance: textfield;
+        }
+
+        body {
+            background-color: #f8f9fa;
+        }
+
+        .container {
+            max-width: 1200px;
+            padding: 2rem;
+        }
+
+        .header {
+            padding: 0.5rem;
+            border-radius: 4px;
+            color: white;
+            text-align: center;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+        }
+
+        .header.primary {
+            background: linear-gradient(45deg, #0d6efd, #0a58ca);
+        }
+
+        .header.secondary {
+            background: linear-gradient(45deg, #6c757d, #565e64);
+        }
+
+        .header.success {
+            background: linear-gradient(45deg, #198754, #146c43);
+        }
+
+        .discount-factors, .price-calculator {
+            background-color: white;
+            border-radius: 8px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 class="text-center m-5">Calculadora de Descuentos y Factores</h1>
+        <hr class="mb-3 text-primary">
+
+        <!-- Sección de Factores de Descuento -->
+        <section class="discount-factors">
+            <h3 class="text-center mt-3">Factores de Descuento</h3>
+            <p class="ms-5 mt-3">*Ingresa el descuento adicional para conocer los factores.</p>
+
+            <div class="row g-3 mb-4">
+                <div class="col-md-2">
+                    <div class="factor-input">
+                        <h6 class="header primary">Descuento Adicional</h6>
+                        <input type="number" class="form-control" value="0" id="descuentoAdicForm">
+                    </div>
+                </div>
+                <div class="col-md-2">
+                    <div class="factor-display">
+                        <h6 class="header secondary">Factor 25%</h6>
+                        <input type="number" class="form-control" id="factorform25" readonly>
+                    </div>
+                </div>
+                <div class="col-md-2">
+                    <div class="factor-display">
+                        <h6 class="header secondary">Factor 30%</h6>
+                        <input type="number" class="form-control" id="factorform30" readonly>
+                    </div>
+                </div>
+                <div class="col-md-2">
+                    <div class="factor-display">
+                        <h6 class="header secondary">Factor 35%</h6>
+                        <input type="number" class="form-control" id="factorform35" readonly>
+                    </div>
+                </div>
+                <div class="col-md-2">
+                    <div class="factor-display">
+                        <h6 class="header secondary">Factor 40%</h6>
+                        <input type="number" class="form-control" id="factorform40" readonly>
+                    </div>
+                </div>
+                <div class="col-md-2">
+                    <div class="factor-display">
+                        <h6 class="header secondary">Factor 45%</h6>
+                        <input type="number" class="form-control" id="factorform45" readonly>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <hr class="mb-5 text-primary">
+
+        <!-- Sección de Calculadora de Precio -->
+        <section class="price-calculator">
+            <h3 class="text-center mt-3">Calculadora de Precio con descuento</h3>
+            <p class="ms-4 mt-4">*Ingresa el descuento del Empresario, el descuento adicional y el Precio Catálogo para conocer el total a pagar.</p>
+
+            <div class="row g-3 mb-4">
+                <div class="col-md-2">
+                    <div class="calculator-input">
+                        <h6 class="header primary">Descuento del EIN</h6>
+                        <select class="form-select" id="descuentoForm">
+                            <option value="0.25" selected>25%</option>
+                            <option value="0.30">30%</option>
+                            <option value="0.35">35%</option>
+                            <option value="0.40">40%</option>
+                            <option value="0.45">45%</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="col-md-2">
+                    <div class="calculator-input">
+                        <h6 class="header primary">Descuento Adicional</h6>
+                        <input type="number" class="form-control" value="0" id="descuentoAdic2Form">
+                    </div>
+                </div>
+                <div class="col-md-2">
+                    <div class="calculator-input">
+                        <h6 class="header primary">Precio Catálogo</h6>
+                        <input type="number" class="form-control" value="0" id="precioCatalogoForm">
+                    </div>
+                </div>
+            </div>
+
+            <div class="row g-3">
+                <div class="col-md-2">
+                    <div class="calculator-result">
+                        <h6 class="header secondary">SubTotal</h6>
+                        <input type="number" class="form-control" id="subtotalForm" readonly>
+                    </div>
+                </div>
+                <div class="col-md-2">
+                    <div class="calculator-result">
+                        <h6 class="header secondary">Manejo</h6>
+                        <input type="number" class="form-control" id="manejoForm" readonly>
+                    </div>
+                </div>
+                <div class="col-md-2">
+                    <div class="calculator-result">
+                        <h6 class="header secondary">IVA</h6>
+                        <input type="number" class="form-control" id="ivaForm" readonly>
+                    </div>
+                </div>
+                <div class="col-md-2">
+                    <div class="calculator-result">
+                        <h6 class="header secondary">Fundación</h6>
+                        <input type="number" class="form-control" id="fundacionForm" readonly>
+                    </div>
+                </div>
+                <div class="col-md-2">
+                    <div class="calculator-result">
+                        <h6 class="header success">Total a Pagar</h6>
+                        <input type="number" class="form-control" id="total2Form" readonly>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Constantes
+        const IVA_RATE = 0.16;
+        const MANEJO_RATE = 0.10;
+        const FUNDACION_RATE = 0.01;
+
+        // Event Listeners
+        document.addEventListener('DOMContentLoaded', () => {
+            // Inicializar calculadoras
+            calcularFactores();
+            calcularPrecioFinal();
+
+            // Event listeners para la calculadora de factores
+            document.getElementById('descuentoAdicForm').addEventListener('input', calcularFactores);
+
+            // Event listeners para la calculadora de precio
+            document.getElementById('descuentoForm').addEventListener('change', calcularPrecioFinal);
+            document.getElementById('descuentoAdic2Form').addEventListener('input', calcularPrecioFinal);
+            document.getElementById('precioCatalogoForm').addEventListener('input', calcularPrecioFinal);
+        });
+
+        // Función para calcular factores
+        function calcularFactores() {
+            const descuentoAdicional = parseFloat(document.getElementById('descuentoAdicForm').value || 0) / 100;
+
+            if (descuentoAdicional >= 0) {
+                const descuentos = [0.25, 0.30, 0.35, 0.40, 0.45];
+                const factores = descuentos.map(descuento => calcularFactor(descuentoAdicional, descuento));
+
+                // Actualizar campos de factores
+                factores.forEach((factor, index) => {
+                    document.getElementById(`factorform${descuentos[index] * 100}`).value = factor;
+                });
+            } else {
+                mostrarError('El descuento adicional no puede ser negativo');
+            }
+        }
+
+        function calcularFactor(descuentoAdicional, descuentoBase) {
+            const precioCatalogo = 100;
+            const sinIva = precioCatalogo / (1 + IVA_RATE);
+            const sinManejo = sinIva * (1 - MANEJO_RATE);
+            const precioSinDescuentoAdicional = sinManejo * (1 - descuentoAdicional);
+            const precioSinDescuento = precioSinDescuentoAdicional * (1 - descuentoBase);
+            const manejo = sinIva * MANEJO_RATE;
+            const iva = (precioSinDescuento + manejo) * IVA_RATE;
+            const fundacion = precioSinDescuentoAdicional * FUNDACION_RATE;
+            
+            return ((precioSinDescuento + manejo + iva + fundacion) / 100).toFixed(4);
+        }
+
+        // Función para calcular precio final
+        function calcularPrecioFinal() {
+            const precioCatalogo = parseFloat(document.getElementById('precioCatalogoForm').value || 0);
+            const descuentoAdicional = parseFloat(document.getElementById('descuentoAdic2Form').value || 0) / 100;
+            const descuento = parseFloat(document.getElementById('descuentoForm').value);
+
+            if (validarEntradas(precioCatalogo, descuentoAdicional)) {
+                const sinIva = precioCatalogo / (1 + IVA_RATE);
+                const sinManejo = sinIva * (1 - MANEJO_RATE);
+                const precioSinDescuentoAdicional = sinManejo * (1 - descuentoAdicional);
+                const precioSinDescuento = precioSinDescuentoAdicional * (1 - descuento);
+                const manejo = sinIva * MANEJO_RATE;
+                const iva = (precioSinDescuento + manejo) * IVA_RATE;
+                const fundacion = precioSinDescuentoAdicional * FUNDACION_RATE;
+                const total = (precioSinDescuento + manejo + iva + fundacion).toFixed(2);
+
+                actualizarCamposResultado({
+                    subtotal: precioSinDescuento.toFixed(2),
+                    manejo: manejo.toFixed(2),
+                    iva: iva.toFixed(2),
+                    fundacion: fundacion.toFixed(2),
+                    total: total
+                });
+            }
+        }
+
+        // Funciones auxiliares
+        function validarEntradas(precioCatalogo, descuentoAdicional) {
+            if (isNaN(precioCatalogo) || precioCatalogo < 0) {
+                mostrarError('El precio de catálogo debe ser un número positivo');
+                return false;
+            }
+            if (isNaN(descuentoAdicional) || descuentoAdicional < 0) {
+                mostrarError('El descuento adicional debe ser un número positivo');
+                return false;
+            }
+            return true;
+        }
+
+        function mostrarError(mensaje) {
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: mensaje,
+                confirmButtonColor: '#0d6efd'
+            });
+        }
+
+        function actualizarCamposResultado(resultados) {
+            document.getElementById('subtotalForm').value = resultados.subtotal;
+            document.getElementById('manejoForm').value = resultados.manejo;
+            document.getElementById('ivaForm').value = resultados.iva;
+            document.getElementById('fundacionForm').value = resultados.fundacion;
+            document.getElementById('total2Form').value = resultados.total;
+        }
+    </script>
+</body>
+</html>
