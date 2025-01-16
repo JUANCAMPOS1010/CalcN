@@ -14,10 +14,7 @@
             margin: 0;
         }
 
-        input[type=number] {
-            -moz-appearance: textfield;
-        }
-
+       
         body {
             background-color: #f8f9fa;
         }
@@ -105,6 +102,15 @@
                     </div>
                 </div>
             </div>
+            <div class="row">
+                <div class="col">
+                    <p class="mb-3 text-danger">*El factor de Piezas de Ein Frecuente al 65% es 0.4228</p>
+                </div>
+                <div class="col d-flex justify-content-end">
+                    <button type="button" class="btn btn-primary btn-sm">COPIAR FACTORES</button>
+                </div>
+            </div>
+
         </section>
 
         <hr class="mb-5 text-primary">
@@ -197,6 +203,8 @@
             document.getElementById('descuentoForm').addEventListener('change', calcularPrecioFinal);
             document.getElementById('descuentoAdic2Form').addEventListener('input', calcularPrecioFinal);
             document.getElementById('precioCatalogoForm').addEventListener('input', calcularPrecioFinal);
+
+            document.querySelector('.btn-primary').addEventListener('click', copiarFactores);
         });
 
         // Función para calcular factores
@@ -284,6 +292,41 @@
             document.getElementById('fundacionForm').value = resultados.fundacion;
             document.getElementById('total2Form').value = resultados.total;
         }
+
+        function copiarFactores() {
+    // Obtener todos los valores de los factores
+    const DescAdicional = document.getElementById('descuentoAdicForm').value;
+    const factor25 = document.getElementById('factorform25').value;
+    const factor30 = document.getElementById('factorform30').value;
+    const factor35 = document.getElementById('factorform35').value;
+    const factor40 = document.getElementById('factorform40').value;
+    const factor45 = document.getElementById('factorform45').value;
+
+    // Crear el texto a copiar
+    let textoACopiar;
+    if (DescAdicional == 0) {
+        textoACopiar = `Factores\n25% = ${factor25}\n30% = ${factor30}\n35% = ${factor35}\n40% = ${factor40}\n45% = ${factor45}`;
+    } else {
+        textoACopiar = `Factores + el ${DescAdicional}% adicional\n25% = ${factor25}\n30% = ${factor30}\n35% = ${factor35}\n40% = ${factor40}\n45% = ${factor45}`;
+    }
+
+    // Copiar al portapapeles
+    navigator.clipboard.writeText(textoACopiar)
+        .then(() => {
+            Swal.fire({
+                icon: 'success',
+                title: 'Copiado!',
+                text: 'Los factores han sido copiados al portapapeles',
+                confirmButtonColor: '#0d6efd',
+                timer: 1500,
+                timerProgressBar: true
+            });
+        })
+        .catch(err => {
+            console.error('Error al copiar: ', err);
+            mostrarError('No se pudieron copiar los factores');
+        });
+}
     </script>
 </body>
 </html>
