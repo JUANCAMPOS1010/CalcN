@@ -61,6 +61,17 @@
             margin-bottom: 2rem;
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
+        .mode-switch { display:flex; flex-wrap:wrap; gap:.55rem; margin:1.25rem 0; }
+        .mode-btn { flex:1 1 170px; border:1px solid #d6deea; background:white; border-radius:10px; padding:.8rem .6rem; font-weight:600; color:#183050; }
+        .mode-btn.active { background:#132746; color:white; border-color:#132746; }
+        .result-highlight { margin-top:1.25rem; padding:1.1rem 1.3rem; background:#f0f6ff; border:1px solid #d4e2f7; border-radius:10px; }
+        .result-highlight strong { font-size:1.6rem; color:#13335d; }
+        .resumen-linea {display:flex; justify-content:space-between; align-items:baseline; gap:1rem; padding:.42rem 0; border-bottom:1px solid #e6edf5;}
+        .resumen-linea:last-child {border-bottom:0;}
+        .resumen-linea span {color:#667184;}
+        .resumen-linea b {white-space:nowrap; color:#132746;}
+        #lineaGanancia b {color:#25864c;}
+        @media(max-width:600px){.container{padding:1rem}.discount-factors,.price-calculator{padding:1.1rem}.mode-switch{display:grid;grid-template-columns:repeat(2,minmax(0,1fr))}.mode-btn{min-width:0;flex:auto;padding:.7rem .4rem;font-size:.9rem}.resumen-linea{font-size:.94rem}}
     </style>
 </head>
 <body>
@@ -127,7 +138,13 @@
         <!-- Sección de Calculadora de Precio -->
         <section class="price-calculator">
             <h3 class="text-center mt-3">Calculadora de Precio con descuento</h3>
-            <p class="ms-4 mt-4">*Ingresa el descuento del Empresario, el descuento adicional y el Precio Catálogo para conocer el total a pagar.</p>
+            <p class="ms-4 mt-4">Selecciona qué deseas calcular. Se conservan las mismas reglas de descuento, manejo, IVA y Fundación.</p>
+            <div class="mode-switch" role="group" aria-label="Tipo de cálculo">
+                <button class="mode-btn active" type="button" data-mode="catalogo" aria-pressed="true">Precio catálogo</button>
+                <button class="mode-btn" type="button" data-mode="puntos" aria-pressed="false">Puntos a comprar</button>
+                <button class="mode-btn" type="button" data-mode="pagar" aria-pressed="false">Total a pagar</button>
+                <button class="mode-btn" type="button" data-mode="ganancia" aria-pressed="false">Ganancia deseada</button>
+            </div>
 
             <div class="row g-3 mb-4">
                 <div class="col-md-2">
@@ -150,12 +167,24 @@
                 </div>
                 <div class="col-md-2">
                     <div class="calculator-input">
-                        <h6 class="header primary">Precio Catálogo</h6>
-                        <input type="number" class="form-control" value="0" id="precioCatalogoForm">
+                        <h6 class="header primary" id="montoEntradaLabel">Precio Catálogo</h6>
+                        <input type="number" class="form-control" min="0" step="any" value="0" id="precioCatalogoForm" aria-labelledby="montoEntradaLabel">
                     </div>
                 </div>
             </div>
 
+            <div class="result-highlight" aria-live="polite">
+                <div id="resultadoPrincipalLabel">Total a pagar</div>
+                <strong id="resultadoPrincipal">$0.00</strong>
+                <div class="mt-3" id="resumenModo">
+                    <div class="resumen-linea" id="lineaInversion"><span>Cantidad a invertir</span><b id="resInversion">$0.00</b></div>
+                    <div class="resumen-linea" id="lineaGanancia"><span>Ganancia estimada</span><b id="resGanancia">$0.00</b></div>
+                    <div class="resumen-linea" id="lineaPuntos"><span>Puntos</span><b id="resPuntos">0</b></div>
+                    <div class="resumen-linea" id="lineaCatalogo"><span>Precio catálogo</span><b id="resCatalogo">$0.00</b></div>
+                </div>
+                <small class="text-muted d-block mt-2">Referencia de puntos: $20 de precio catálogo por punto. La diferencia no contempla otros gastos o comisiones.</small>
+            </div>
+            <h5 class="mt-4 mb-3">Desglose del pago</h5>
             <div class="row g-3">
                 <div class="col-md-2">
                     <div class="calculator-result">
@@ -199,6 +228,39 @@
         const MANEJO_RATE = 0.10;
         const FUNDACION_RATE = 0.01;
 
+        let modoCalculo = 'catalogo';
+        const MODOS = {
+            catalogo: ['Precio Catálogo', 'Total a pagar'],
+            puntos: ['Puntos a invertir', 'Cantidad a invertir'],
+            pagar: ['Cantidad a invertir', 'Precio catálogo que puedes pedir'],
+            ganancia: ['Ganancia deseada', 'Cantidad a invertir']
+        };
+        const money = valor => new Intl.NumberFormat('es-MX', {style:'currency',currency:'MXN'}).format(valor);
+
+        function precioDesglosado(precioCatalogo, descuentoAdicional, descuento) {
+            const sinIva = precioCatalogo / (1 + IVA_RATE);
+            const sinManejo = sinIva * (1 - MANEJO_RATE);
+            const precioSinDescuentoAdicional = sinManejo * (1 - descuentoAdicional);
+            const subtotal = precioSinDescuentoAdicional * (1 - descuento);
+            const manejo = sinIva * MANEJO_RATE;
+            const iva = (subtotal + manejo) * IVA_RATE;
+            const fundacion = precioSinDescuentoAdicional * FUNDACION_RATE;
+            return {subtotal, manejo, iva, fundacion, total:subtotal + manejo + iva + fundacion};
+        }
+
+        function cambiarModo(nuevoModo) {
+            modoCalculo = nuevoModo;
+            document.querySelectorAll('[data-mode]').forEach(b => {
+                const activo = b.dataset.mode === nuevoModo;
+                b.classList.toggle('active', activo);
+                b.setAttribute('aria-pressed', String(activo));
+            });
+            document.getElementById('montoEntradaLabel').textContent = MODOS[nuevoModo][0];
+            document.getElementById('resultadoPrincipalLabel').textContent = MODOS[nuevoModo][1];
+            document.getElementById('precioCatalogoForm').value = '0';
+            calcularPrecioFinal();
+        }
+
         // Event Listeners
         document.addEventListener('DOMContentLoaded', () => {
             // Inicializar calculadoras
@@ -213,6 +275,7 @@
             document.getElementById('descuentoAdic2Form').addEventListener('input', calcularPrecioFinal);
             document.getElementById('precioCatalogoForm').addEventListener('input', calcularPrecioFinal);
 
+            document.querySelectorAll('[data-mode]').forEach(b => b.addEventListener('click', () => cambiarModo(b.dataset.mode)));
             document.querySelector('.btn-primary').addEventListener('click', copiarFactores);
         });
 
@@ -246,30 +309,45 @@
             return ((precioSinDescuento + manejo + iva + fundacion) / 100).toFixed(4);
         }
 
-        // Función para calcular precio final
+        // Calculadora directa e inversa con el mismo desglose del cálculo original.
         function calcularPrecioFinal() {
-            const precioCatalogo = parseFloat(document.getElementById('precioCatalogoForm').value || 0);
-            const descuentoAdicional = parseFloat(document.getElementById('descuentoAdic2Form').value || 0) / 100;
+            const entrada = parseFloat(document.getElementById('precioCatalogoForm').value || 0);
+            const adicionalPorc = parseFloat(document.getElementById('descuentoAdic2Form').value || 0);
             const descuento = parseFloat(document.getElementById('descuentoForm').value);
-
-            if (validarEntradas(precioCatalogo, descuentoAdicional)) {
-                const sinIva = precioCatalogo / (1 + IVA_RATE);
-                const sinManejo = sinIva * (1 - MANEJO_RATE);
-                const precioSinDescuentoAdicional = sinManejo * (1 - descuentoAdicional);
-                const precioSinDescuento = precioSinDescuentoAdicional * (1 - descuento);
-                const manejo = sinIva * MANEJO_RATE;
-                const iva = (precioSinDescuento + manejo) * IVA_RATE;
-                const fundacion = precioSinDescuentoAdicional * FUNDACION_RATE;
-                const total = (precioSinDescuento + manejo + iva + fundacion).toFixed(2);
-
-                actualizarCamposResultado({
-                    subtotal: precioSinDescuento.toFixed(2),
-                    manejo: manejo.toFixed(2),
-                    iva: iva.toFixed(2),
-                    fundacion: fundacion.toFixed(2),
-                    total: total
-                });
+            if (!Number.isFinite(entrada) || entrada < 0 || !Number.isFinite(adicionalPorc) || adicionalPorc < 0 || adicionalPorc > 100) {
+                document.getElementById('resultadoPrincipal').textContent = 'Revisa los valores';
+                document.querySelectorAll('#subtotalForm,#manejoForm,#ivaForm,#fundacionForm,#total2Form').forEach(el => el.value = '');
+                return;
             }
+            const adicional = adicionalPorc / 100;
+            const factorExacto = precioDesglosado(1, adicional, descuento).total;
+            if (factorExacto <= 0 || factorExacto >= 1 && modoCalculo === 'ganancia') {
+                document.getElementById('resultadoPrincipal').textContent = 'No es posible calcular';
+                document.querySelectorAll('#subtotalForm,#manejoForm,#ivaForm,#fundacionForm,#total2Form').forEach(el => el.value = '');
+                return;
+            }
+            let catalogo;
+            if (modoCalculo === 'catalogo') catalogo = entrada;
+            else if (modoCalculo === 'puntos') catalogo = entrada * 20;
+            else if (modoCalculo === 'pagar') catalogo = entrada / factorExacto;
+            else catalogo = entrada / (1 - factorExacto);
+
+            const r = precioDesglosado(catalogo, adicional, descuento);
+            actualizarCamposResultado({
+                subtotal:r.subtotal.toFixed(2), manejo:r.manejo.toFixed(2),
+                iva:r.iva.toFixed(2), fundacion:r.fundacion.toFixed(2), total:r.total.toFixed(2)
+            });
+            const principal = modoCalculo === 'pagar' ? catalogo : r.total;
+            document.getElementById('resultadoPrincipal').textContent = money(principal);
+            document.getElementById('resInversion').textContent = money(r.total);
+            document.getElementById('resCatalogo').textContent = money(catalogo);
+            document.getElementById('resPuntos').textContent = (catalogo / 20).toLocaleString('es-MX',{maximumFractionDigits:2});
+            document.getElementById('resGanancia').textContent = money(catalogo - r.total);
+            // En cada modo, el resultado destaca los datos de las capturas.
+            document.getElementById('lineaInversion').hidden = modoCalculo === 'catalogo' || modoCalculo === 'puntos' || modoCalculo === 'ganancia';
+            document.getElementById('lineaGanancia').hidden = modoCalculo === 'catalogo';
+            document.getElementById('lineaPuntos').hidden = modoCalculo === 'catalogo';
+            document.getElementById('lineaCatalogo').hidden = false;
         }
 
         // Funciones auxiliares
