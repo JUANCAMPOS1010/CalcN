@@ -66,6 +66,7 @@
         .mode-btn.active { background:#132746; color:white; border-color:#132746; }
         .result-highlight { margin-top:1.25rem; padding:1.1rem 1.3rem; background:#f0f6ff; border:1px solid #d4e2f7; border-radius:10px; }
         .result-highlight strong { font-size:1.6rem; color:#13335d; }
+        .resumen-linea[hidden] {display:none!important;}
         .resumen-linea {display:flex; justify-content:space-between; align-items:baseline; gap:1rem; padding:.42rem 0; border-bottom:1px solid #e6edf5;}
         .resumen-linea:last-child {border-bottom:0;}
         .resumen-linea span {color:#667184;}
@@ -179,43 +180,16 @@
                 <div class="mt-3" id="resumenModo">
                     <div class="resumen-linea" id="lineaInversion"><span>Cantidad a invertir</span><b id="resInversion">$0.00</b></div>
                     <div class="resumen-linea" id="lineaGanancia"><span>Ganancia estimada</span><b id="resGanancia">$0.00</b></div>
-                    <div class="resumen-linea" id="lineaPuntos"><span>Puntos</span><b id="resPuntos">0</b></div>
+                    <div class="resumen-linea" id="lineaPuntosReferencia"><span>Puntos</span><b id="resPuntosReferencia">0</b></div>
+                    <div class="resumen-linea" id="lineaPuntos"><span>Puntos promoción</span><b id="resPuntos">0</b></div>
                     <div class="resumen-linea" id="lineaCatalogo"><span>Precio catálogo</span><b id="resCatalogo">$0.00</b></div>
+                    <div class="resumen-linea" id="lineaSubtotal"><span>Subtotal</span><b id="resSubtotal">$0.00</b></div>
+                    <div class="resumen-linea" id="lineaManejo"><span>Manejo</span><b id="resManejo">$0.00</b></div>
+                    <div class="resumen-linea" id="lineaIva"><span>IVA</span><b id="resIva">$0.00</b></div>
+                    <div class="resumen-linea" id="lineaFundacion"><span>Fundación</span><b id="resFundacion">$0.00</b></div>
+                    <div class="resumen-linea" id="lineaTotal"><span>Total a pagar</span><b id="resTotal">$0.00</b></div>
                 </div>
-                <small class="text-muted d-block mt-2">Referencia de puntos: $20 de precio catálogo por punto. La diferencia no contempla otros gastos o comisiones.</small>
-            </div>
-            <h5 class="mt-4 mb-3">Desglose del pago</h5>
-            <div class="row g-3">
-                <div class="col-md-2">
-                    <div class="calculator-result">
-                        <h6 class="header secondary">SubTotal</h6>
-                        <input type="number" class="form-control" id="subtotalForm" readonly>
-                    </div>
-                </div>
-                <div class="col-md-2">
-                    <div class="calculator-result">
-                        <h6 class="header secondary">Manejo</h6>
-                        <input type="number" class="form-control" id="manejoForm" readonly>
-                    </div>
-                </div>
-                <div class="col-md-2">
-                    <div class="calculator-result">
-                        <h6 class="header secondary">Iva</h6>
-                        <input type="number" class="form-control" id="ivaForm" readonly>
-                    </div>
-                </div>
-                <div class="col-md-2">
-                    <div class="calculator-result">
-                        <h6 class="header secondary">Fundación</h6>
-                        <input type="number" class="form-control" id="fundacionForm" readonly>
-                    </div>
-                </div>
-                <div class="col-md-2">
-                    <div class="calculator-result">
-                        <h6 class="header success">Total a Pagar</h6>
-                        <input type="number" class="form-control" id="total2Form" readonly>
-                    </div>
-                </div>
+                <small class="text-muted d-block mt-2">* $20 de precio catálogo por punto. «Puntos promoción» muestra los puntos finales después de aplicar el descuento adicional.</small>
             </div>
         </section>
     </div>
@@ -231,11 +205,11 @@
         let modoCalculo = 'catalogo';
         const MODOS = {
             catalogo: ['Precio Catálogo', 'Total a pagar'],
-            puntos: ['Puntos a invertir', 'Cantidad a invertir'],
+            puntos: ['Puntos', 'Cantidad a invertir'],
             pagar: ['Cantidad a invertir', 'Precio catálogo que puedes pedir'],
             ganancia: ['Ganancia deseada', 'Cantidad a invertir']
         };
-        const money = valor => new Intl.NumberFormat('es-MX', {style:'currency',currency:'MXN'}).format(valor);
+        const money = valor => new Intl.NumberFormat('es-MX', {style:'currency',currency:'MXN'}).format(Math.abs(valor) < 0.005 ? 0 : valor);
 
         function precioDesglosado(precioCatalogo, descuentoAdicional, descuento) {
             const sinIva = precioCatalogo / (1 + IVA_RATE);
@@ -257,7 +231,8 @@
             });
             document.getElementById('montoEntradaLabel').textContent = MODOS[nuevoModo][0];
             document.getElementById('resultadoPrincipalLabel').textContent = MODOS[nuevoModo][1];
-            document.getElementById('precioCatalogoForm').value = '0';
+            document.getElementById('precioCatalogoForm').value = '';
+            document.getElementById('precioCatalogoForm').step = nuevoModo === 'puntos' ? '1' : 'any';
             calcularPrecioFinal();
         }
 
@@ -316,38 +291,43 @@
             const descuento = parseFloat(document.getElementById('descuentoForm').value);
             if (!Number.isFinite(entrada) || entrada < 0 || !Number.isFinite(adicionalPorc) || adicionalPorc < 0 || adicionalPorc > 100) {
                 document.getElementById('resultadoPrincipal').textContent = 'Revisa los valores';
-                document.querySelectorAll('#subtotalForm,#manejoForm,#ivaForm,#fundacionForm,#total2Form').forEach(el => el.value = '');
                 return;
             }
             const adicional = adicionalPorc / 100;
             const factorExacto = precioDesglosado(1, adicional, descuento).total;
-            if (factorExacto <= 0 || factorExacto >= 1 && modoCalculo === 'ganancia') {
+            if (factorExacto <= 0 || (factorExacto >= 1 && modoCalculo === 'ganancia') || (modoCalculo === 'puntos' && adicional >= 1)) {
                 document.getElementById('resultadoPrincipal').textContent = 'No es posible calcular';
-                document.querySelectorAll('#subtotalForm,#manejoForm,#ivaForm,#fundacionForm,#total2Form').forEach(el => el.value = '');
                 return;
             }
             let catalogo;
             if (modoCalculo === 'catalogo') catalogo = entrada;
-            else if (modoCalculo === 'puntos') catalogo = entrada * 20;
+            else if (modoCalculo === 'puntos') catalogo = Math.ceil(Math.ceil(entrada) / (1 - adicional) - 1e-10) * 20;
             else if (modoCalculo === 'pagar') catalogo = entrada / factorExacto;
             else catalogo = entrada / (1 - factorExacto);
 
             const r = precioDesglosado(catalogo, adicional, descuento);
-            actualizarCamposResultado({
-                subtotal:r.subtotal.toFixed(2), manejo:r.manejo.toFixed(2),
-                iva:r.iva.toFixed(2), fundacion:r.fundacion.toFixed(2), total:r.total.toFixed(2)
-            });
             const principal = modoCalculo === 'pagar' ? catalogo : r.total;
             document.getElementById('resultadoPrincipal').textContent = money(principal);
             document.getElementById('resInversion').textContent = money(r.total);
             document.getElementById('resCatalogo').textContent = money(catalogo);
-            document.getElementById('resPuntos').textContent = (catalogo / 20).toLocaleString('es-MX',{maximumFractionDigits:2});
+            const puntosReferencia = Math.floor(catalogo / 20 + 1e-9);
+            const puntosAcreditados = Math.floor(puntosReferencia * (1 - adicional) + 1e-9);
+            const formatoPuntos = valor => valor.toLocaleString('es-MX',{maximumFractionDigits:0});
+            document.getElementById('resPuntosReferencia').textContent = formatoPuntos(puntosReferencia);
+            document.getElementById('resPuntos').textContent = formatoPuntos(puntosAcreditados);
             document.getElementById('resGanancia').textContent = money(catalogo - r.total);
+            document.getElementById('resSubtotal').textContent = money(r.subtotal);
+            document.getElementById('resManejo').textContent = money(r.manejo);
+            document.getElementById('resIva').textContent = money(r.iva);
+            document.getElementById('resFundacion').textContent = money(r.fundacion);
+            document.getElementById('resTotal').textContent = money(r.total);
             // En cada modo, el resultado destaca los datos de las capturas.
-            document.getElementById('lineaInversion').hidden = modoCalculo === 'catalogo' || modoCalculo === 'puntos' || modoCalculo === 'ganancia';
-            document.getElementById('lineaGanancia').hidden = modoCalculo === 'catalogo';
-            document.getElementById('lineaPuntos').hidden = modoCalculo === 'catalogo';
+            document.getElementById('lineaInversion').hidden = modoCalculo !== 'pagar';
+            document.getElementById('lineaGanancia').hidden = false;
+            document.getElementById('lineaPuntosReferencia').hidden = false;
+            document.getElementById('lineaPuntos').hidden = adicional <= 0;
             document.getElementById('lineaCatalogo').hidden = false;
+            document.getElementById('lineaTotal').hidden = modoCalculo !== 'pagar';
         }
 
         // Funciones auxiliares
@@ -370,14 +350,6 @@
                 text: mensaje,
                 confirmButtonColor: '#0d6efd'
             });
-        }
-
-        function actualizarCamposResultado(resultados) {
-            document.getElementById('subtotalForm').value = resultados.subtotal;
-            document.getElementById('manejoForm').value = resultados.manejo;
-            document.getElementById('ivaForm').value = resultados.iva;
-            document.getElementById('fundacionForm').value = resultados.fundacion;
-            document.getElementById('total2Form').value = resultados.total;
         }
 
         function copiarFactores() {
